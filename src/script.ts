@@ -1,23 +1,23 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
   const newLink = await prisma.link.create({
     data: {
-      description: "Fullstack tutorial for GraphQL",
-      url: "www.howtographql.com",
+      description: 'Fullstack tutorial for GraphQL',
+      url: 'www.howtographql.com',
     },
-  });
-  const allLinks = await prisma.link.findMany();
+  })
+  const allLinks = await prisma.link.findMany()
 
-  console.log(allLinks);
+  console.log(allLinks)
 }
 
 main()
   .catch((e) => {
-    throw e;
+    throw e
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })
