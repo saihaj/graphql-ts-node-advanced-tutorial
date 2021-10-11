@@ -43,33 +43,25 @@ const resolvers: Resolvers<GraphQLContext> = {
   },
   User: {
     links: (parent, _, context) =>
-      context.prisma.user
-        .findUnique({ where: { id: parseInt(parent.id) } })
-        .links(),
+      context.prisma.user.findUnique({ where: { id: parent.id } }).links(),
   },
   Vote: {
     link: (parent, _, context) =>
-      context.prisma.vote
-        .findUnique({ where: { id: parseInt(parent.id) } })
-        .link(),
+      context.prisma.vote.findUnique({ where: { id: parent.id } }).link(),
     user: (parent, _, context) =>
-      context.prisma.vote
-        .findUnique({ where: { id: parseInt(parent.id) } })
-        .user(),
+      context.prisma.vote.findUnique({ where: { id: parent.id } }).user(),
   },
   Link: {
-    id: (parent) => parent.id,
+    id: (parent) => parent.id.toString(),
     description: (parent) => parent.description,
     url: (parent) => parent.url,
     votes: (parent, _, context) =>
-      context.prisma.link
-        .findUnique({ where: { id: parseInt(parent.id) } })
-        .votes(),
+      context.prisma.link.findUnique({ where: { id: parent.id } }).votes(),
     postedBy: async (parent, _, context) => {
-      if (!parent.postedBy) return null
+      if (!parent.postedById) return null
 
       return context.prisma.link
-        .findUnique({ where: { id: parseInt(parent.id) } })
+        .findUnique({ where: { id: parent.id } })
         .postedBy()
     },
   },
@@ -91,7 +83,7 @@ const resolvers: Resolvers<GraphQLContext> = {
 
       return newLink
     },
-    signup: async (parent, args, context) => {
+    signup: async (_, args, context) => {
       const password = await hash(args.password, 10)
 
       const user = await context.prisma.user.create({

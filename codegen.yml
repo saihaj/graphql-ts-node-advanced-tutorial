@@ -5,3 +5,8 @@ generates:
     plugins:
       - 'typescript'
       - 'typescript-resolvers'
+    config:
+      mappers:
+        Link: .prisma/client#Link as LinkModel
+        User: .prisma/client#User as UserModel
+        Vote: .prisma/client#Vote as VoteModel

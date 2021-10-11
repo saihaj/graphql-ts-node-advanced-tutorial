@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
     "start": "ts-node src/index.ts",
-    "generate": "graphql-codegen --config codegen.yml",
+    "generate": "npm run generate:prisma && npm run generate:codegen",
+    "generate:codegen": "graphql-codegen --config codegen.yml",
+    "generate:prisma": "prisma generate",
     "check": "tsc --noEmit"
   },
   "repository": {
