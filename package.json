@@ -1,5 +1,5 @@
 {
-  "name": "howtogql-ts",
+  "name": "howtogql-advanced-ts",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,15 +9,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dotansimha/graphql-typescript-node-tutorial.git"
+    "url": "git+https://github.com/saihaj/graphql-ts-node-advanced-tutorial.git"
   },
-  "keywords": [],
-  "author": "",
+  "contributors": [
+    "Dotan Simha <dotansimha@gmail.com> (https://github.com/dotansimha/)",
+    "Saihajpreet Singh <saihajpreet.singh@gmail.com> (https://saihaj.dev/)"
+  ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dotansimha/graphql-typescript-node-tutorial/issues"
+    "url": "https://github.com/saihaj/graphql-ts-node-advanced-tutorial/issues"
   },
-  "homepage": "https://github.com/dotansimha/graphql-typescript-node-tutorial#readme",
+  "homepage": "https://github.com/saihaj/graphql-ts-node-advanced-tutorial#readme",
   "devDependencies": {
     "@prisma/client": "^3.0.2",
     "@types/bcryptjs": "^2.4.2",
