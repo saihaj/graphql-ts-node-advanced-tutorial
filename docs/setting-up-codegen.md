@@ -21,5 +21,26 @@ GraphQL Type System defines different capabilities of the GraphQL service. In pr
      "generate": "graphql-codegen --config codegen.yml"
    ```
 4. Run `npm run generate` and now you should have a `./src/generated/graphql.ts` file with all the types generated from GraphQL SDL for you resolvers.
+5. You can add `generated/` to `.gitignore` to exclude generated files.
 
 We will use this generated types to strongly type our resolvers which will help us to make sure we are not returning any unexpected values and keep our code maintainable.
+
+Now in `src/schema.ts` we will import `Resolvers` type for our `resolver object.
+
+```ts
+import { Resolvers } from './generated/graphql'
+```
+
+Annotate `resolver` object with `Resolvers` type and provide it our `GraphQLContext`.
+
+```ts
+const resolvers: Resolvers<GraphQLContext> = {
+```
+
+Now you should have many errors in your `src/schema.ts` file. We will fix these one by one. First we will remove all the type annotations we added manually.
+
+Let's add a `check` script to `package.json` and resolve an error at a time.
+
+```json
+ "check": "tsc --noEmit"
+```

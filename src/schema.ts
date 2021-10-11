@@ -1,29 +1,16 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { GraphQLContext } from './context'
 import typeDefs from './schema.graphql'
-import { Link, User, Prisma } from '@prisma/client'
 import { APP_SECRET } from './auth'
 import { hash, compare } from 'bcryptjs'
 import { sign } from 'jsonwebtoken'
 import { PubSubChannels } from './pubsub'
+import { Resolvers } from './generated/graphql'
 
-const resolvers = {
+const resolvers: Resolvers<GraphQLContext> = {
   Query: {
     info: () => `This is the API of a Hackernews Clone`,
-    feed: async (
-      parent: unknown,
-      args: {
-        filter?: string
-        skip?: number
-        take?: number
-        orderBy?: {
-          description?: Prisma.SortOrder
-          url?: Prisma.SortOrder
-          createdAt?: Prisma.SortOrder
-        }
-      },
-      context: GraphQLContext,
-    ) => {
+    feed: async (_, args, context) => {
       const where = args.filter
         ? {
             OR: [
@@ -36,8 +23,8 @@ const resolvers = {
       const totalCount = await context.prisma.link.count({ where })
       const links = await context.prisma.link.findMany({
         where,
-        skip: args.skip,
-        take: args.take,
+        skip: args.skip!,
+        take: args.take!,
         orderBy: args.orderBy,
       })
 
@@ -46,7 +33,7 @@ const resolvers = {
         links,
       }
     },
-    me: (parent: unknown, args: {}, context: GraphQLContext) => {
+    me: (_, __, context) => {
       if (context.currentUser === null) {
         throw new Error('Unauthenticated!')
       }
@@ -55,37 +42,39 @@ const resolvers = {
     },
   },
   User: {
-    links: (parent: User, args: {}, context: GraphQLContext) =>
-      context.prisma.user.findUnique({ where: { id: parent.id } }).links(),
+    links: (parent, _, context) =>
+      context.prisma.user
+        .findUnique({ where: { id: parseInt(parent.id) } })
+        .links(),
   },
   Vote: {
-    link: (parent: User, args: {}, context: GraphQLContext) =>
-      context.prisma.vote.findUnique({ where: { id: parent.id } }).link(),
-    user: (parent: User, args: {}, context: GraphQLContext) =>
-      context.prisma.vote.findUnique({ where: { id: parent.id } }).user(),
+    link: (parent, _, context) =>
+      context.prisma.vote
+        .findUnique({ where: { id: parseInt(parent.id) } })
+        .link(),
+    user: (parent, _, context) =>
+      context.prisma.vote
+        .findUnique({ where: { id: parseInt(parent.id) } })
+        .user(),
   },
   Link: {
-    id: (parent: Link) => parent.id,
-    description: (parent: Link) => parent.description,
-    url: (parent: Link) => parent.url,
-    votes: (parent: Link, args: {}, context: GraphQLContext) =>
-      context.prisma.link.findUnique({ where: { id: parent.id } }).votes(),
-    postedBy: async (parent: Link, args: {}, context: GraphQLContext) => {
-      if (!parent.postedById) {
-        return null
-      }
+    id: (parent) => parent.id,
+    description: (parent) => parent.description,
+    url: (parent) => parent.url,
+    votes: (parent, _, context) =>
+      context.prisma.link
+        .findUnique({ where: { id: parseInt(parent.id) } })
+        .votes(),
+    postedBy: async (parent, _, context) => {
+      if (!parent.postedBy) return null
 
       return context.prisma.link
-        .findUnique({ where: { id: parent.id } })
+        .findUnique({ where: { id: parseInt(parent.id) } })
         .postedBy()
     },
   },
   Mutation: {
-    post: async (
-      parent: unknown,
-      args: { description: string; url: string },
-      context: GraphQLContext,
-    ) => {
+    post: async (_, args, context) => {
       if (context.currentUser === null) {
         throw new Error('Unauthenticated!')
       }
@@ -102,11 +91,7 @@ const resolvers = {
 
       return newLink
     },
-    signup: async (
-      parent: unknown,
-      args: { email: string; password: string; name: string },
-      context: GraphQLContext,
-    ) => {
+    signup: async (parent, args, context) => {
       const password = await hash(args.password, 10)
 
       const user = await context.prisma.user.create({
@@ -120,11 +105,7 @@ const resolvers = {
         user,
       }
     },
-    login: async (
-      parent: unknown,
-      args: { email: string; password: string },
-      context: GraphQLContext,
-    ) => {
+    login: async (parent, args, context) => {
       const user = await context.prisma.user.findUnique({
         where: { email: args.email },
       })
@@ -144,11 +125,7 @@ const resolvers = {
         user,
       }
     },
-    vote: async (
-      parent: unknown,
-      args: { linkId: string },
-      context: GraphQLContext,
-    ) => {
+    vote: async (_, args, context) => {
       // 1
       if (!context.currentUser) {
         throw new Error('You must login in order to use upvote!')
@@ -186,7 +163,7 @@ const resolvers = {
   },
   Subscription: {
     newLink: {
-      subscribe: (parent: unknown, args: {}, context: GraphQLContext) => {
+      subscribe: (_, __, context) => {
         return context.pubSub.asyncIterator('newLink')
       },
       resolve: (payload: PubSubChannels['newLink'][0]) => {
@@ -194,7 +171,7 @@ const resolvers = {
       },
     },
     newVote: {
-      subscribe: (parent: unknown, args: {}, context: GraphQLContext) => {
+      subscribe: (_, __, context) => {
         return context.pubSub.asyncIterator('newVote')
       },
       resolve: (payload: PubSubChannels['newVote'][0]) => {

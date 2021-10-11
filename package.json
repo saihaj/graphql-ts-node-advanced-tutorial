@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "generate": "graphql-codegen --config codegen.yml",
+    "check": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,9 @@
   },
   "homepage": "https://github.com/saihaj/graphql-ts-node-advanced-tutorial#readme",
   "devDependencies": {
+    "@graphql-codegen/cli": "^2.2.0",
+    "@graphql-codegen/typescript": "^2.2.2",
+    "@graphql-codegen/typescript-resolvers": "^2.3.0",
     "@prisma/client": "^3.0.2",
     "@types/bcryptjs": "^2.4.2",
     "@types/jsonwebtoken": "^8.5.5",
