@@ -8,8 +8,17 @@ import {
   shouldRenderGraphiQL,
   renderGraphiQL,
 } from 'graphql-helix'
+import { envelop, useExtendContext, useLogger, useSchema } from '@envelop/core'
 import { schema } from './schema'
-import { contextFactory } from './context'
+import { contextFactory as gqlContext } from './context'
+
+const getEnvelop = envelop({
+  plugins: [
+    useSchema(schema),
+    useExtendContext((ctx) => gqlContext(ctx.request)),
+    useLogger(),
+  ],
+})
 
 async function main() {
   const server = fastify()
@@ -35,16 +44,21 @@ async function main() {
 
         return
       }
-
+      const { parse, validate, contextFactory, execute, schema } = getEnvelop({
+        req,
+      })
       const { operationName, query, variables } = getGraphQLParameters(request)
 
       const result = await processRequest({
         request,
         schema,
         operationName,
-        contextFactory: () => contextFactory(req),
         query,
         variables,
+        parse,
+        validate,
+        contextFactory,
+        execute,
       })
 
       sendResult(result, reply.raw)

@@ -25,6 +25,7 @@ const resolvers: Resolvers<GraphQLContext> = {
         where,
         skip: args.skip!,
         take: args.take!,
+        // @ts-expect-error TODO: fix me
         orderBy: args.orderBy,
       })
 
@@ -46,8 +47,10 @@ const resolvers: Resolvers<GraphQLContext> = {
       context.prisma.user.findUnique({ where: { id: parent.id } }).links(),
   },
   Vote: {
+    // @ts-expect-error TODO: fix me
     link: (parent, _, context) =>
       context.prisma.vote.findUnique({ where: { id: parent.id } }).link(),
+    // @ts-expect-error TODO: fix me
     user: (parent, _, context) =>
       context.prisma.vote.findUnique({ where: { id: parent.id } }).user(),
   },

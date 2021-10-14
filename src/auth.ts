@@ -8,7 +8,7 @@ export async function authenticateUser(
   prisma: PrismaClient,
   request: FastifyRequest,
 ): Promise<User | null> {
-  if (request.headers.authorization) {
+  if (request?.headers?.authorization) {
     const token = request.headers.authorization.split(' ')[1]
     const tokenPayload = verify(token, APP_SECRET) as JwtPayload
     const userId = tokenPayload.userId
