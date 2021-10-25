@@ -8,15 +8,23 @@ import {
   shouldRenderGraphiQL,
   renderGraphiQL,
 } from 'graphql-helix'
-import { envelop, useExtendContext, useLogger, useSchema } from '@envelop/core'
+import {
+  envelop,
+  useExtendContext,
+  useLogger,
+  useSchema,
+  enableIf,
+} from '@envelop/core'
 import { schema } from './schema'
 import { contextFactory as gqlContext } from './context'
+import { disableIntrospection } from './disable-introspection'
 
 const getEnvelop = envelop({
   plugins: [
     useSchema(schema),
     useExtendContext((ctx) => gqlContext(ctx.request)),
     useLogger(),
+    enableIf(process.env.NODE_ENV === 'production', disableIntrospection()),
   ],
 })
 
