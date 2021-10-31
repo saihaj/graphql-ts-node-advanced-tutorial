@@ -1,5 +1,7 @@
+directive @skipAuth on FIELD_DEFINITION
+
 type Query {
-  info: String!
+  info: String! @skipAuth
   feed(filter: String, skip: Int, take: Int, orderBy: LinkOrderByInput): Feed!
   me: User!
 }
@@ -12,7 +14,8 @@ type Feed {
 type Mutation {
   post(url: String!, description: String!): Link!
   signup(email: String!, password: String!, name: String!): AuthPayload
-  login(email: String!, password: String!): AuthPayload
+    @skipAuth
+  login(email: String!, password: String!): AuthPayload @skipAuth
   vote(linkId: ID!): Vote
 }
 

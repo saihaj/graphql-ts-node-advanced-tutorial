@@ -1,6 +1,5 @@
 import { PrismaClient, User } from '@prisma/client'
 import { FastifyRequest } from 'fastify'
-import { authenticateUser } from './auth'
 import { pubSub } from './pubsub'
 
 const prisma = new PrismaClient()
@@ -13,10 +12,10 @@ export type GraphQLContext = {
 
 export async function contextFactory(
   request: FastifyRequest,
-): Promise<GraphQLContext> {
+  // Current user is injected by auth plugin
+): Promise<Omit<GraphQLContext, 'currentUser'>> {
   return {
     prisma,
-    currentUser: await authenticateUser(prisma, request),
     pubSub,
   }
 }

@@ -18,12 +18,18 @@ import {
 import { schema } from './schema'
 import { contextFactory as gqlContext } from './context'
 import { disableIntrospection } from './disable-introspection'
+import { useGenericAuth } from '@envelop/generic-auth'
+import { authenticateUser } from './auth'
 
 const getEnvelop = envelop({
   plugins: [
     useSchema(schema),
     useExtendContext((ctx) => gqlContext(ctx.request)),
-    useLogger(),
+    // useLogger(),
+    useGenericAuth({
+      resolveUserFn: authenticateUser,
+      mode: 'protect-all',
+    }),
     enableIf(process.env.NODE_ENV === 'production', disableIntrospection()),
   ],
 })
