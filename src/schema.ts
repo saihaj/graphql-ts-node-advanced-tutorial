@@ -83,6 +83,7 @@ const resolvers: Resolvers<GraphQLContext> = {
       })
 
       context.pubSub.publish('newLink', { createdLink: newLink })
+      context.liveQueryStore.invalidate('Query.feed')
 
       return newLink
     },
@@ -152,6 +153,7 @@ const resolvers: Resolvers<GraphQLContext> = {
       })
 
       context.pubSub.publish('newVote', { createdVote: newVote })
+      context.liveQueryStore.invalidate('Query.feed')
 
       return newVote
     },

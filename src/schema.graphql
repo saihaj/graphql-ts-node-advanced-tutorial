@@ -1,4 +1,5 @@
 directive @skipAuth on FIELD_DEFINITION
+directive @live on QUERY
 
 type Query {
   info: String! @skipAuth

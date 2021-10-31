@@ -16,16 +16,18 @@ import {
   enableIf,
 } from '@envelop/core'
 import { schema } from './schema'
-import { contextFactory as gqlContext } from './context'
+import { contextFactory as gqlContext, liveQueryStore } from './context'
 import { disableIntrospection } from './disable-introspection'
 import { useGenericAuth } from '@envelop/generic-auth'
 import { authenticateUser } from './auth'
+import { useLiveQuery } from '@envelop/live-query'
 
 const getEnvelop = envelop({
   plugins: [
     useSchema(schema),
+    useLiveQuery({ liveQueryStore }),
     useExtendContext((ctx) => gqlContext(ctx.request)),
-    // useLogger(),
+    useLogger(),
     useGenericAuth({
       resolveUserFn: authenticateUser,
       mode: 'protect-all',
