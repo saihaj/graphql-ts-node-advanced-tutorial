@@ -1,5 +1,5 @@
 import 'graphql-import-node'
-import fastify from 'fastify'
+import fastify, { FastifyContext, FastifyRequest } from 'fastify'
 import {
   getGraphQLParameters,
   processRequest,
@@ -16,11 +16,16 @@ import {
   enableIf,
 } from '@envelop/core'
 import { schema } from './schema'
-import { contextFactory as gqlContext, liveQueryStore } from './context'
+import {
+  contextFactory as gqlContext,
+  GraphQLContext,
+  liveQueryStore,
+} from './context'
 import { disableIntrospection } from './disable-introspection'
 import { useGenericAuth } from '@envelop/generic-auth'
 import { authenticateUser } from './auth'
 import { useLiveQuery } from '@envelop/live-query'
+import { User } from '.prisma/client'
 
 const getEnvelop = envelop({
   plugins: [
@@ -28,7 +33,7 @@ const getEnvelop = envelop({
     useLiveQuery({ liveQueryStore }),
     useExtendContext((ctx) => gqlContext(ctx.request)),
     useLogger(),
-    useGenericAuth({
+    useGenericAuth<User, GraphQLContext & { req: FastifyRequest['req'] }>({
       resolveUserFn: authenticateUser,
       mode: 'protect-all',
     }),
