@@ -57,7 +57,10 @@ const resolvers: Resolvers<GraphQLContext> = {
   Link: {
     id: (parent) => parent.id.toString(),
     description: (parent) => parent.description,
-    url: (parent) => parent.url,
+    url: async (parent) => {
+      await new Promise((res) => setTimeout(res, Math.random() * 1000))
+      return parent.url
+    },
     votes: (parent, _, context) =>
       context.prisma.link.findUnique({ where: { id: parent.id } }).votes(),
     postedBy: async (parent, _, context) => {

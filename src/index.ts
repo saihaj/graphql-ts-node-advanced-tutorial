@@ -1,5 +1,5 @@
 import 'graphql-import-node'
-import fastify, { FastifyContext, FastifyRequest } from 'fastify'
+import fastify, { FastifyRequest } from 'fastify'
 import {
   getGraphQLParameters,
   processRequest,
