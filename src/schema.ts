@@ -41,6 +41,26 @@ const resolvers: Resolvers<GraphQLContext> = {
 
       return context.currentUser
     },
+    // @ts-expect-error
+    tryme: (_, __, context) => {
+      return {}
+    },
+  },
+  NestedField: {
+    // @ts-expect-error
+    name: async () => {
+      await new Promise((res) => setTimeout(res, 2000))
+      // throw new Error('Lol GL')
+      return null
+    },
+    age: async () => {
+      await new Promise((res) => setTimeout(res, 2000))
+      throw new Error('Lol GL')
+      return 100
+    },
+    id: async () => {
+      return 'i am an id'
+    },
   },
   User: {
     links: (parent, _, context) =>

@@ -5,6 +5,13 @@ type Query {
   info: String! @skipAuth
   feed(filter: String, skip: Int, take: Int, orderBy: LinkOrderByInput): Feed!
   me: User!
+  tryme: NestedField
+}
+
+type NestedField {
+  id: ID
+  name: String!
+  age: Int
 }
 
 type Feed {

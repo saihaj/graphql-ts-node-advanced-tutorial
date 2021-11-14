@@ -33,10 +33,10 @@ const getEnvelop = envelop({
     useLiveQuery({ liveQueryStore }),
     useExtendContext((ctx) => gqlContext(ctx.request)),
     useLogger(),
-    useGenericAuth<User, GraphQLContext & { req: FastifyRequest['req'] }>({
-      resolveUserFn: authenticateUser,
-      mode: 'protect-all',
-    }),
+    // useGenericAuth<User, GraphQLContext & { req: FastifyRequest['req'] }>({
+    //   resolveUserFn: authenticateUser,
+    //   mode: 'protect-all',
+    // }),
     enableIf(process.env.NODE_ENV === 'production', disableIntrospection()),
   ],
 })
