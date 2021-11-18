@@ -164,7 +164,7 @@ const resolvers: Resolvers<GraphQLContext> = {
   Subscription: {
     newLink: {
       subscribe: (_, __, context) => {
-        return context.pubSub.asyncIterator('newLink')
+        return context.pubSub.subscribe('newLink')
       },
       resolve: (payload: PubSubChannels['newLink'][0]) => {
         return payload.createdLink
@@ -172,7 +172,7 @@ const resolvers: Resolvers<GraphQLContext> = {
     },
     newVote: {
       subscribe: (_, __, context) => {
-        return context.pubSub.asyncIterator('newVote')
+        return context.pubSub.subscribe('newVote')
       },
       resolve: (payload: PubSubChannels['newVote'][0]) => {
         return payload.createdVote
