@@ -81,7 +81,6 @@ async function main() {
         contextFactory,
         execute,
       })
-
       sendResult(result, reply.raw)
     },
   })
