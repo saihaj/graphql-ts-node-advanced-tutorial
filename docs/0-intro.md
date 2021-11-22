@@ -4,7 +4,7 @@ In previous tutorial we built a GraphQL server for HackerNews clone API with Nod
 
 ### What to expect?
 
-In this tutorial we will explore tools in the GraphQL JavaScript/TypeScript ecosystem that make it easy to build a GraphQL server for real-world applications. We will extend the implementation from previous tutorial and use the following technologies:
+By the end of the tutorial, you will have a deep understanding of the life cycle of a GraphQL request. You will have an overview of various popular open-source GraphQL libraries and know how and when you should utilize them to your advantage. This includes things such as improved type-safety while building the GraphQL schema and operation logging, but you will also become familiar with upcoming GraphQL features, that are still in development and learn how you can use them today!
 
 - [GraphQL Code Generator](https://www.graphql-code-generator.com): Helps generate types for resolvers from GraphQL Schema.
 - [GraphQL Tools](https://graphql-tools.com): Set of utilities that help compose GraphQL schemas and resolvers.
