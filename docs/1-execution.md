@@ -1,3 +1,25 @@
+# Anatomy of a GraphQL request
+
+Clients make HTTP requests to the server by sending a query or a mutation to the server. Generally it is a JSON object that contains a query or mutation with variables. Then the server will pass the request onto the GraphQL engine which will first parse the query or mutation, then validate them against our schema to ensure they are valid. For mutations it will ensure that all the required fields are present in the input. Then the engine will execute the query or mutation and return the result back to the client as a JSON object which has `data` field, `errors` field (if any errors were thrown in execute phase) and `extensions` field (attach any meta-data to request).
+
+```
+                                       ┌────────────┐
+                          Requests are │┌──────────┐│
+        Make an HTTP      processed by ││  Parse   ││
+     ┌─────request────┐    the GraphQL │└──────────┘│
+     │                │     execution  │      │     │
+     │                ▼      engine.   │      ▼     │
+┌────────┐       ┌────────┐            │┌──────────┐│
+│ Client │       │ Server │───────────▶││ Validate ││
+└────────┘       └────────┘            │└──────────┘│
+     ▲                │                │      │     │
+     │  Return JSON   │                │      ▼     │
+     └──object with ──┘                │┌──────────┐│
+        data and/or                    ││ Execute  ││
+       error fields                    │└──────────┘│
+                                       └────────────┘
+```
+
 # What is execution?
 
 GraphQL generates a response from a request via [execution](https://spec.graphql.org/June2018/#sec-Execution). Execution is the process of executing a GraphQL document against a GraphQL schema.
@@ -16,5 +38,9 @@ GraphQL generates a response from a request via [execution](https://spec.graphql
 ## What and why override different phases?
 
 - `parse`: GraphQL Type system defines the capabilities of the GraphQL service. This phase can be used to add add new capabilities to the type system that may not be supported by GraphQL specification.
-- `validate`: Validation is the done before executing. In this phase we can ensure that incoming operation are mistake-free. This can be used to add custom rules like you can use this to only allow `query` operations and if any other operation is tried it will be failed even before executing. -`execute`: This is the phase where your resolvers are called. Customizing this phase can allow you to run custom logic.
+
+- `validate`: Validation is the done before executing. In this phase we can ensure that incoming operation are mistake-free. This can be used to add custom rules like you can use this to only allow `query` operations and if any other operation is tried it will be failed even before executing.
+
+-`execute`: This is the phase where your resolvers are called. Customizing this phase can allow you to run custom logic.
+
 - `subscribe`: Customizing the behaviour of GraphQL subscription operations.
