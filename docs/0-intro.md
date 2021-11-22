@@ -1,6 +1,8 @@
 # Introduction
 
-In previous tutorial we built a GraphQL server for HackerNews clone API with Node.js, Fastify, TypeScript, GraphQL-Helix and Prisma 3. We added authentication, filtering, pagination and subscriptions.
+In the previous tutorial, you built a HackerNews GraphQL API with Node.js, Fastify, TypeScript, GraphQL Helix, and Prisma 3. You added common server features such as authentication, pagination, and real-time subscriptions.
+
+In this tutorial, you will revisit and improve the API built with various tools from the GraphQL TypeScript eco-system and learn how they can improve your developer experience, empowering you to iterate safer and quicker, while also making the ready API for production.
 
 ### What to expect?
 
