@@ -57,7 +57,7 @@ If there is any typo or syntax error this phase will yield GraphQLErrors for eac
 
 For the following invalid GraphQL operation (`)` missing after `$id`):
 
-```graphql
+```
 query UserById($id: ID!) {
   user(id: $id {
     id
