@@ -157,7 +157,7 @@ Let's inspect the AST we had a brief look within the last chapter. As you can se
 }
 ```
 
-An AST visitor is an object with hooks/handler function for specific entities, that are specified through the `kind` property in the document AST.
+An AST visitor is an object with hooks/handler functions for specific entities, that are specified through the `kind` property in the document AST.
 
 ```ts
 import { ASTVisitor } from 'graphql'
