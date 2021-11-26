@@ -318,4 +318,4 @@ We wanna make sure the errors occurring during the execution do not contain sens
 
 ### Add new functionality
 
-We could customize the algorithm that is used by `graphql-js` in order to add new features or make it more performant.
+We could customize the algorithm that is used by `graphql-js` in order to add new features or make it more performant e.g. by using [graphql-executor](https://www.npmjs.com/package/graphql-executor).
