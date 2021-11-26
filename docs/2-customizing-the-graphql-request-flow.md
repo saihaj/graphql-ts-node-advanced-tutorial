@@ -600,8 +600,7 @@ server.route({
 +      if (result.errors) {
 +        console.log(
 +          '-----\n' +
-+            'Errors occurred while executing the following document:\n' +
-+            print(args.document) +
++            'Errors occurred while executing' +
 +            '\n\n' +
 +            result.errors.map((error) => String(error)).join('\n\n') +
 +            '\n-----\n',
@@ -656,10 +655,301 @@ server.route({
 });
 ```
 
-As you can see adding this code clutters your HTTP request handler quite a lot. Adding more customization will make your handler code more complex and complicated to maintain. Furthermore, for new projects you have to copy and add the same custom logic over and over again.
-If you have worked with other frameworks before you might be familiar with plugin systems. Some frameworks expose hooks that can be used for executing custom logic before and after certain processes are happening within the framework logic.
-Unfortunately, `graphql-js` does not come with such a plugin system and the main focus of `graphql-helix` is HTTP request normalization. In the past full-stack GraphQL servers have provided such hook interfaces, but did not let you customize all aspects. However, the GraphQL community came up with a library that fills the gap of a fully-customizable GraphQL plugin system.
-
 ## Envelop, the missing GraphQL plugin system
 
-TODO
+As you can see adding the code in the previous steps clutters your HTTP request handler quite a lot. Adding more customizations will make your handler code more complex and complicated to maintain. Furthermore, for new projects you have to copy and paste or re-implement the same custom logic over and over again.
+If you have worked with other frameworks before you might be familiar with plugin systems. Some frameworks expose hooks that can be used for executing custom logic before and after certain processes are happening within the framework logic.
+Unfortunately, `graphql-js` does not come with such a plugin system and the main focus of `graphql-helix` is HTTP request normalization. In the past full-stack GraphQL servers have provided such hook interfaces, but did not let you customize all aspects. However, the GraphQL community came up with a library that fills the gap of a fully-customizable GraphQL plugin system, `Envelop`.
+
+Envelop wraps the core functions from `graphql-js` and provides a convenient interface for writing composable plugins. Let's reset the GraphQL HTTP handler to the state before adding the custom validation rules and the error loggers and add a basic envelop setup.
+
+```diff
++ import { envelop, useSchema } from '@envelop/core'
+import { schema } from './schema'
+
++ const getEnveloped = envelop({
++   plugins: [
++     useSchema(schema),
++   ],
++ });
+
+server.route({
+  method: "POST",
+  url: "/graphql",
+  handler: async (req, reply) => {
+    const request: Request = {
+      headers: req.headers,
+      method: req.method,
+      query: req.query,
+      body: req.body,
+    };
+
+    const { operationName, query, variables } = getGraphQLParameters(request);
+
++    const { parse, validate, contextFactory, execute, subscribe, schema } = getEnveloped({ request, operationName, query, variables });
+
+
+    const result = await processRequest({
+      request,
+      schema,
+      operationName,
+      query,
+      variables,
++      context: await contextFactory(),
++      parse,
++      validate,
++      execute,
++      subscribe,
+    });
+
+    sendResult(result, reply.raw);
+  }
+});
+```
+
+The `envelop` function takes a list of plugins that should be registered and returns a `getEnveloped` factory function that returns all the adjusted core function overwrites from `graphql-js`, that call the hooks the defined in plugins.
+But how does such a plugin actually look like?
+
+Lets start by rebuilding a plugin that registers the `DisableIntrospectionValidationRule` you built in the previous steps.
+A plugin is described by the `Plugin` type exported from the `@envelop/core` package and is an object that has handlers for hooking into all the phases before and after `parse`, `validate`, `execute` and `subscribe`.
+
+In your case, you want to register a validation rule before `validate` is being called. The correct hook for that is `onValidate`. Each hook receives a context with convenience methods for making stuff such as adding a validation rule easier.
+
+```ts
+import type { Plugin } from '@envelop/core'
+import { DisableIntrospectionValidationRule } from './DisableIntrospectionValidationRule'
+
+export const useDisableIntrospection = (): Plugin => {
+  return {
+    onValidate(onValidateContext) {
+      onValidateContext.addValidationRule(DisableIntrospectionValidationRule)
+    },
+  }
+}
+```
+
+After you wrote the plugin it can simply be added to the envelop setup.
+
+```diff
+import { envelop, useSchema } from '@envelop/core'
+import { schema } from './schema'
++ import { useDisableIntrospection } from './useDisableIntrospection'
+
+const getEnveloped = envelop({
+  plugins: [
+    useSchema(schema),
++    useDisableIntrospection(),
+  ],
+});
+
+server.route({
+  method: "POST",
+  url: "/graphql",
+  handler: async (req, reply) => {
+    const request: Request = {
+      headers: req.headers,
+      method: req.method,
+      query: req.query,
+      body: req.body,
+    };
+
+    const { operationName, query, variables } = getGraphQLParameters(request);
+
+    const { parse, validate, contextFactory, execute, subscribe, schema } = getEnveloped({ request, operationName, query, variables });
+
+
+    const result = await processRequest({
+      request,
+      schema,
+      operationName,
+      query,
+      variables,
+      context: await contextFactory(),
+      parse,
+      validate,
+      execute,
+      subscribe,
+    });
+
+    sendResult(result, reply.raw);
+  }
+});
+```
+
+In the `getEnveloped({ request, operationName, query, variables })` call, you are passing the raw HTTP request into the plugin context.
+You can now even further improve the plugin and allow introspection if a specific HTTP header is provided.
+
+```diff
+import type { Plugin } from '@envelop/core'
+import { DisableIntrospectionValidationRule } from './DisableIntrospectionValidationRule'
+
+const useDisableIntrospection = (): Plugin => {
+  return {
+    onValidate(onValidateContext) {
++      const allowIntrospectionKey =
++        onValidateContext.context.request?.headers.get('x-allow-introspection')
+
++      if (allowIntrospectionKey !== 'secret-key') {
+        onValidateContext.addValidationRule(DisableIntrospectionValidationRule)
++      }
+    },
+  }
+}
+```
+
+Now all requests that send along a `x-allow-introspection: secret-key` headers are actually able to still perform introspection.
+
+The best part of this is that the `useDisableIntrospection` can just be put into a npm package within your organization and be re-used and maintained for multiple projects. The base requirement is that your team uses envelop. Even if another GraphQL Server is not doing GraphQL over HTTP but WebSockets or any other protocol, the plugin can still be used!
+
+In fact this specific plugin is already available on npm, so you don't need to write it yourself and can use a already well maintained and tested plugin from the community.
+
+```diff
+import { envelop, useSchema } from '@envelop/core'
+import { schema } from './schema'
+- import { useDisableIntrospection } from './useDisableIntrospection'
++ import { useDisableIntrospection } from '@envelop/disable-introspection';
+
+const getEnveloped = envelop({
+  plugins: [
+    useSchema(schema),
+    useDisableIntrospection(),
+  ],
+});
+```
+
+For a better understanding, lets also implement the `execute` and `subscribe` error logger plugin using the envelop plugin API.
+
+```ts
+import { Plugin } from '@envelop/core'
+import { ExecutionResult } from 'graphql'
+
+const applyErrorLogging = (result: ExecutionResult) => {
+  if (result.errors) {
+    console.log(
+      '-----\n' +
+        'Errors occurred while executing' +
+        '\n\n' +
+        result.errors.map((error) => String(error)).join('\n\n') +
+        '\n-----\n',
+    )
+  }
+}
+
+const useErrorLogger = (): Plugin => {
+  return {
+    onExecute(onExecuteContext) {
+      console.log('before execute is called')
+
+      return {
+        onExecuteDone(onExecuteDoneContext) {
+          console.log('after execute is called')
+          applyErrorLogging(onExecuteDoneContext.result as ExecutionResult)
+        },
+      }
+    },
+  }
+}
+```
+
+As mentioned before, the plugin API allows hooking into the before and after phases of each of the `graphql-js` core functions. Envelop runs the `onExecute` handler first, then the `execute` logic as implemented by `graphql-js` and then calls an optional `onExecuteDone` handler that can be returned from `onExecute`. In the `onExecuteDone`, you can access the execution result and log it.
+
+You can do the same for the `subscribe` function using the `onSubscribe` and `onSubscribeResult` hook.
+
+```diff
+import { Plugin, isAsyncIterable } from '@envelop/core'
+- import { ExecutionResult } from 'graphql'
++ import { ExecutionResult, isAsyncIterable } from 'graphql'
+
+const applyErrorLogging = (result: ExecutionResult) => {
+  if (result.errors) {
+    console.log(
+      '-----\n' +
+        'Errors occurred while executing' +
+        '\n\n' +
+        result.errors.map((error) => String(error)).join('\n\n') +
+        '\n-----\n',
+    )
+  }
+}
+
++ async function* mapStream(stream: AsyncIterable<ExecutionResult>) {
++   for await (const result of stream) {
++     applyErrorLogging(result)
++     yield result
++   }
++ }
+
+const useErrorLogger = (): Plugin => {
+  return {
+    onExecute(onExecuteContext) {
+      console.log('before execute is called')
+
+      return {
+        onExecuteDone(onExecuteDoneContext) {
+          console.log('after execute is called')
+          applyErrorLogging(onExecuteDoneContext.result as ExecutionResult)
+        },
+      }
+    },
++    onSubscribe(onSubscribeContent) {
++      return {
++        onSubscribeResult(onSubscribeResult) {
++          if (isAsyncIterable(onSubscribeResult.result)) {
++            onSubscribeResult.setResult(mapStream(onSubscribeResult.result))
++          } else {
++            applyErrorLogging(onSubscribeResult.result)
++          }
++        },
++      }
++    },
++  }
+}
+```
+
+Then you can simply add the plugin to the list of envelop plugins.
+
+```diff
+import { envelop, useSchema } from '@envelop/core'
+import { schema } from './schema'
+import { useDisableIntrospection } from '@envelop/disable-introspection'
++ import { useErrorLogger } from './useErrorLogger'
+
+const getEnveloped = envelop({
+  plugins: [
+    useSchema(schema),
+    useDisableIntrospection(),
++    useErrorLogger(),
+  ],
+});
+```
+
+As before, the community already solved this issue before, so you can just drop all that code and use the already existing plugin that is part of `@envelop/core`.
+
+```diff
+import { envelop, useSchema } from '@envelop/core'
+import { schema } from './schema'
+import { useDisableIntrospection } from '@envelop/disable-introspection'
+- import { useErrorLogger } from './useErrorLogger'
++ import { useErrorHandler } from '@envelop/core'
+
+const getEnveloped = envelop({
+  plugins: [
+    useSchema(schema),
+    useDisableIntrospection(),
+-    useErrorLogger(),
++    useErrorHandler(errors => {
++      console.log(
++        '-----\n' +
++          'Errors occurred while executing' +
++          '\n\n' +
++          result.errors.map((error) => String(error)).join('\n\n') +
++          '\n-----\n',
++      )
++    }),
+  ],
+});
+```
+
+The envelop plugin hub is the place to go for looking whether your GraphQL problem has been already solved by the community and might save you a lot time in your upcoming GraphQL projects! If you like you can start a small digging session right now on https://www.envelop.dev/plugins.
+
+Now that you understood the basic concepts of how the GraphQL request flow can be customized and how envelop helps with that we will focus on how we can utilize envelop for making your GraphQL server production-ready in the next chapter!
