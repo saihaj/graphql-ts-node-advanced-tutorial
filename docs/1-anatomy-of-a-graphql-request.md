@@ -285,22 +285,22 @@ Implementing the logic for parsing and normalizing the HTTP request is time cons
 
 ### Add Caching
 
-Parsing a GraphQL document string comes with an overhead. We could cache frequently sent document strings and serve the document from the cache instead of parsing it every single time.
+Parsing a GraphQL document string comes with overhead. We could cache frequently sent document strings and serve the document from the cache instead of parsing it every single time.
 
 ### Test new Functionality
 
 The GraphQL Type system defines the capabilities of the GraphQL service.
-This phase can be used to add add new capabilities to the type system that may not yet be supported by GraphQL specification.
+This phase can be used to add new capabilities to the type system that may not yet be supported by GraphQL specification.
 
 ## `validate`
 
 ### Add caching
 
-Similar to parsing, validating a GraphQL document AST comes with an overhead. We could cache reoccurring document ASTs and server the validation result from the cache instead of validating it every single time.
+Similar to parsing, validating a GraphQL document AST comes with an overhead. We could cache recurring document ASTs and server the validation result from the cache instead of validating it every single time.
 
 ### Add custom rules
 
-You might wanna restrict what kind of operations are allowed to be executed. E.g. if we only want to allow `query` operations, we can provide a custom validation rule that yields errors as soon as a `mutation` or `subscription` operation is encountered.
+You might wanna restrict what kind of operations are allowed to be executed. E.g. If we we only want to allow `query` operations, we can provide a custom validation rule that yields errors as soon as a `mutation` or `subscription` operation is encountered.
 
 ## `execute` and `subscribe`
 

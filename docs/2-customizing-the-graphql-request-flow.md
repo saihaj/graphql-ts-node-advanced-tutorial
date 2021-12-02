@@ -58,7 +58,7 @@ server.route({
 
 With this setup we overwrote the `validate` function that `graphql-helix` is using and can now add additional rules to our `rules` array. We also need to add the default rules (which ensure the document follows the GraphQL specification), to the `rules` array. Conveniently, `graphql-js` exports those as the `specifiedRules` array.
 
-Now that you GraphQL handler is ready for validating custom `ValidationRule`s, we can start with defining our custom rule. The `ValidationRule` type as exported from `graphql-js` helps us with the typings.
+Now that your GraphQL handler is ready for validating custom `ValidationRule`s, we can start with defining our custom rule. The `ValidationRule` type as exported from `graphql-js` helps us with the typings.
 
 ```ts
 const DisableIntrospectionValidationRule: ValidationRule = (context) => {
@@ -264,7 +264,7 @@ const DisableIntrospectionValidationRule: ValidationRule = (context) => {
 }
 ```
 
-For your `DisableIntrospectionValidationRule` you want to register a handler for all `Field` nodes and then check whether the field resolves to any of the `Introspection` GraphQL types. To determine whether wether a type is an introspection type we can leverage the `isIntrospectionType` function exported from `graphql-js`.
+For your `DisableIntrospectionValidationRule` you want to register a handler for all `Field` nodes and then check whether the field resolves to any of the `Introspection` GraphQL types. To determine whether a type is an introspection type we can leverage the `isIntrospectionType` function exported from `graphql-js`.
 
 ```ts
 import { ValidationRule, GraphQLError } from 'graphql'
@@ -492,7 +492,7 @@ server.route({
 });
 ```
 
-Pretty straight-forward, and similar to what we did with `validate` previously. Now you can simply iterator through the error (if any occurred) and log them along-side the GraphQL operation that caused them.
+Pretty straight-forward, and similar to what we did with `validate` previously. Now you can simply iterate through the error (if any occurred) and log them along-side the GraphQL operation that caused them.
 
 ```diff
 import {
@@ -657,7 +657,7 @@ server.route({
 
 ## Envelop, the missing GraphQL plugin system
 
-As you can see adding the code in the previous steps clutters your HTTP request handler quite a lot. Adding more customizations will make your handler code more complex and complicated to maintain. Furthermore, for new projects you have to copy and paste or re-implement the same custom logic over and over again.
+As you can see, adding the code in the previous steps clutters your HTTP request handler quite a lot. Adding more customizations will make your handler code more complex and complicated to maintain. Furthermore, for new projects you have to copy and paste or re-implement the same custom logic over and over again.
 If you have worked with other frameworks before you might be familiar with plugin systems. Some frameworks expose hooks that can be used for executing custom logic before and after certain processes are happening within the framework logic.
 Unfortunately, `graphql-js` does not come with such a plugin system and the main focus of `graphql-helix` is HTTP request normalization. In the past full-stack GraphQL servers have provided such hook interfaces, but did not let you customize all aspects. However, the GraphQL community came up with a library that fills the gap of a fully-customizable GraphQL plugin system, `Envelop`.
 
@@ -707,10 +707,10 @@ server.route({
 });
 ```
 
-The `envelop` function takes a list of plugins that should be registered and returns a `getEnveloped` factory function that returns all the adjusted core function overwrites from `graphql-js`, that call the hooks the defined in plugins.
-But how does such a plugin actually look like?
+The `envelop` function takes a list of plugins that should be registered and returns a `getEnveloped` factory function that returns all the adjusted core function overwrites from `graphql-js`, that call the hooks defined in plugins.
+But what does such a plugin actually look like?
 
-Lets start by rebuilding a plugin that registers the `DisableIntrospectionValidationRule` you built in the previous steps.
+Let's start by rebuilding a plugin that registers the `DisableIntrospectionValidationRule` you built in the previous steps.
 A plugin is described by the `Plugin` type exported from the `@envelop/core` package and is an object that has handlers for hooking into all the phases before and after `parse`, `validate`, `execute` and `subscribe`.
 
 In your case, you want to register a validation rule before `validate` is being called. The correct hook for that is `onValidate`. Each hook receives a context with convenience methods for making stuff such as adding a validation rule easier.
@@ -801,7 +801,7 @@ Now all requests that send along a `x-allow-introspection: secret-key` headers a
 
 The best part of this is that the `useDisableIntrospection` can just be put into a npm package within your organization and be re-used and maintained for multiple projects. The base requirement is that your team uses envelop. Even if another GraphQL Server is not doing GraphQL over HTTP but WebSockets or any other protocol, the plugin can still be used!
 
-In fact this specific plugin is already available on npm, so you don't need to write it yourself and can use a already well maintained and tested plugin from the community.
+In fact this specific plugin is already available on npm, so you don't need to write it yourself and can use an already well maintained and tested plugin from the community.
 
 ```diff
 import { envelop, useSchema } from '@envelop/core'
@@ -817,7 +817,7 @@ const getEnveloped = envelop({
 });
 ```
 
-For a better understanding, lets also implement the `execute` and `subscribe` error logger plugin using the envelop plugin API.
+For a better understanding, let's also implement the `execute` and `subscribe` error logger plugin using the envelop plugin API.
 
 ```ts
 import { Plugin } from '@envelop/core'
@@ -950,6 +950,9 @@ const getEnveloped = envelop({
 });
 ```
 
-The envelop plugin hub is the place to go for looking whether your GraphQL problem has been already solved by the community and might save you a lot time in your upcoming GraphQL projects! If you like you can start a small digging session right now on https://www.envelop.dev/plugins.
+The envelop plugin hub is the place to go for looking whether your GraphQL problem has been already solved by the community and might save you a lot of time in your upcoming GraphQL projects! If you like you can start a small digging session right now on https://www.envelop.dev/plugins.
 
-Now that you understood the basic concepts of how the GraphQL request flow can be customized and how envelop helps with that we will focus on how we can utilize envelop for making your GraphQL server production-ready in the next chapter!
+Now you have a basic understanding of the GraphQL request flow and learned how envelop helps with customizing it
+
+The next chapter will focus on how you can utilize envelop for making your GraphQL server production-ready in the next chapter!
+
