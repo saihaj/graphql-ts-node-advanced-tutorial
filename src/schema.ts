@@ -6,6 +6,7 @@ import { hash, compare } from 'bcryptjs'
 import { sign } from 'jsonwebtoken'
 import { PubSubChannels } from './pubsub'
 import { Resolvers } from './generated/graphql'
+import { GraphQLSchema } from 'graphql'
 
 const resolvers: Resolvers<GraphQLContext> = {
   Query: {
@@ -58,7 +59,7 @@ const resolvers: Resolvers<GraphQLContext> = {
     id: (parent) => parent.id.toString(),
     description: (parent) => parent.description,
     url: async (parent) => {
-      await new Promise((res) => setTimeout(res, Math.random() * 1000))
+      await new Promise((res) => setTimeout(res, Math.random() * 3000))
       return parent.url
     },
     votes: (parent, _, context) =>
@@ -181,7 +182,12 @@ const resolvers: Resolvers<GraphQLContext> = {
   },
 }
 
-export const schema = makeExecutableSchema({
+const executableSchema = makeExecutableSchema({
   typeDefs,
   resolvers,
+})
+
+export const schema = new GraphQLSchema({
+  ...executableSchema.toConfig(),
+  enableDeferStream: true,
 })
