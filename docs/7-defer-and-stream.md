@@ -11,7 +11,21 @@ To learn more about incremental delivery checkout this [RFC](https://github.com/
 This feature is still in early stages and soon will become part of GraphQL specification. We can experiment with it in our playground. We just need to install experimental release of `graphql-js`.
 
 ```shell
-npm i graphql@16.0.0-experimental-stream-defer.5
+npm i graphql@16.1.0-experimental-stream-defer.6
+```
+
+Now let's update the schema:
+
+```ts
+const executableSchema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+})
+
+export const schema = new GraphQLSchema({
+  ...executableSchema.toConfig(),
+  enableDeferStream: true,
+})
 ```
 
 Now let's modify our `Link` query resolver. On `url` field we will introduce a random delay. In a real world this field may come from some other service.
@@ -38,7 +52,7 @@ Now on GraphiQL if we try to run this query:
 
 You should see a spinner and we wait for all links to be fetched and then see the response.
 
-![without defer](https://i.imgur.com/7AY2Bia.gif)
+![without defer and stream](https://i.imgur.com/7AY2Bia.gif)
 
 Now let's try out `@defer` directive:
 
@@ -58,3 +72,17 @@ Now let's try out `@defer` directive:
 Now you can see we get the response instantly and then urls are sent in subsequent responses.
 
 ![with defer](https://i.imgur.com/Nl5lX1j.gif)
+
+`@defer` is useful for fields that are expensive to fetch and are not very high priority for our clients to show. But when we are showing a list it is more important that we show the first item as soon as possible. So we can use `@stream` directive to chunk the list. In this case we will return the first item and then rest of the items in subsequent responses.
+
+```graphql
+{
+  feed {
+    links @stream(initialCount: 1) {
+      url
+    }
+  }
+}
+```
+
+![with stream](https://i.imgur.com/X9Ya9QT.gif)
